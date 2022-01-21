@@ -23,11 +23,11 @@ export default function WeatherElement(props) {
 
   return (
     <div className="weather-item">
-      <div className="item" style={{width: "25px"}}>
+      <div className="item">
         <h4>{getTime(props.time)}</h4>
       </div>
       <div className="item">
-        <Cloudy/>
+        <img src={props.icon} className="condition" alt="condition"/>
       </div>
       <div className="item">
         <h4>{props.roundNumber(props.temp)}°</h4>

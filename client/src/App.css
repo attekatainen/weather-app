@@ -78,11 +78,28 @@ h1, h2, h3, h4, h5, p, span {
   padding: 5px 0px;
   margin: 0px 10px;
   margin-right: 10px;
-  font-size: 19px;
+  font-size: 17px;
   color: #232A2C;
   letter-spacing: 0.1px;
 }
 
 .item h4 {
   font-weight: 700;
+}
+
+.spinner-div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.spinner {
+  color: #232A2C !important;
+  margin-bottom: 70px;
+}
+
+.condition {
+  height: auto;
+  width: 30px;
 }

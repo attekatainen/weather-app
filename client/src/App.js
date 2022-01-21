@@ -3,14 +3,18 @@ import axios from "axios";
 import './App.css';
 import CircularProgress from '@mui/material/CircularProgress';
 import WeatherElement from './WeatherElement';
-import Forecast from './Forecast';
+import Geocode from "react-geocode";
+Geocode.setApiKey("");
 
 function App() {
   const [today, setToday] = useState(true);
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
   const [forecast, setForecast] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentWeather, setCurrentWeather] = useState([]);
-  const [forecastOne, setforecastOne] = useState([]);
+  const [forecastToday, setforecastToday] = useState([]);
+  const [forecastTomorrow, setforecastTomorrow] = useState([]);
 
   const handleToday = () => {
     setToday(true);
@@ -39,15 +43,45 @@ function App() {
     }
   }
 
-  const getData = async () => {
-    await axios
-    .get("http://localhost:5000/current-weather")
-    .then(function (response) {
-      setCurrentWeather(response.data[0]);
-      setforecastOne(response.data[1]);
-      setLoading(false);
-    })
-    .catch((err) => console.error(err));
+  const getData = () => {
+    let city, country;
+    if ("geolocation" in navigator) {
+      console.log("Available");
+      navigator.geolocation.getCurrentPosition(function(position) {
+        Geocode.fromLatLng(position.coords.latitude, position.coords.longitude).then(
+          (response) => {
+            for (let i = 0; i < response.results[0].address_components.length; i++) {
+              for (let j = 0; j < response.results[0].address_components[i].types.length; j++) {
+                switch (response.results[0].address_components[i].types[j]) {
+                  case "locality":
+                    city = response.results[0].address_components[i].long_name;
+                    setCity(city);
+                    break;
+                  case "country":
+                    country = response.results[0].address_components[i].long_name;
+                    setCountry(country);
+                    break;
+                }
+              }
+            }
+            axios
+            .get("http://localhost:5000/current-weather/" + city)
+            .then(function (response) {
+              setCurrentWeather(response.data[0]);
+              setforecastToday(response.data[1]);
+              setforecastTomorrow(response.data[2]);
+              setLoading(false);
+            })
+            .catch((err) => console.error(err));
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      });
+    } else {
+      console.log("Not Available");
+    }
   }
 
   useEffect(() => {
@@ -56,7 +90,9 @@ function App() {
 
   if (loading) {
   return (
-    <CircularProgress className="spinner"/>
+    <div className="spinner-div">
+      <CircularProgress className="spinner"/>
+    </div>
   );
   } else {
   return (
@@ -68,28 +104,27 @@ function App() {
       </div>
       <div className="navigation">
         <div className={today ? "nav-item active" : "nav-item"} onClick={handleToday}>
-          <h4>Tänään</h4>
+          <h4>Today</h4>
         </div>
         <div className={forecast ? "nav-item active" : "nav-item"} onClick={handleForecast}>
-          <h4>5 päivän sääennuste</h4>
+          <h4>Tomorrow</h4>
         </div>
       </div>
       {today ?
       <div className="weather-today">
-        {forecastOne.map((item, index) => {
-          const showElement = getDifferenceInTime(item.time);
-          if (showElement) {
-            return <WeatherElement key={index} time={item.time} temp={item.temp} condition={item.condition} wind={item.wind} feelslike={item.feelslike} roundNumber={roundNumber}/>
+        {forecastToday.map((item, index) => {
+          if (getDifferenceInTime(item.time)) {
+            return <WeatherElement key={index} time={item.time} temp={item.temp} condition={item.condition} wind={item.wind} feelslike={item.feelslike} icon={item.conditionicon} roundNumber={roundNumber}/>
           }
         })}
       </div>
       :
       <div className="weather-today">
-        <Forecast day="Keskiviikko, 19.1.2022"/>
-        <Forecast day="torstai, 20.1.2022"/>
-        <Forecast day="Perjantai, 21.1.2022"/>
-        <Forecast day="Lauantai, 21.1.2022"/>
-        <Forecast day="Sunnuntai, 21.1.2022"/>
+        {forecastTomorrow.map((item, index) => {
+          if (getDifferenceInTime(item.time)) {
+            return <WeatherElement key={index} time={item.time} temp={item.temp} condition={item.condition} wind={item.wind} feelslike={item.feelslike} icon={item.conditionicon} roundNumber={roundNumber}/>
+          }
+        })}
       </div>
       }
     </div>
