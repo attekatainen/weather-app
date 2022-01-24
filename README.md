@@ -1,1 +1,5 @@
-## Weather app made with react
+## Weather app made with React and Node.js
+
+Shows current weather and 2-day forecast based on the user's location.
+
+Data is from RapidAPI: https://rapidapi.com/weatherapi/api/weatherapi-com/
